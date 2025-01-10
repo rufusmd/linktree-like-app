@@ -7,11 +7,12 @@ const __dirname = path.dirname(__filename);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    outputFileTracingRoot: __dirname, // Ensures dependencies are bundled
+    outputFileTracingRoot: __dirname,
   },
-  output: "standalone",               // Standalone mode for Cloudflare
-  distDir: ".vercel/output",          // Build output for Cloudflare Pages
-  trailingSlash: true,                // Ensures proper static paths
+  output: "standalone",
+  // Remove the distDir configuration temporarily
+  // distDir: ".vercel/output",
+  trailingSlash: true,
 };
 
 export default nextConfig;
