@@ -9,8 +9,12 @@ export default function EmailForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setResponse("Submitting...");
+    
+    const workerUrl = 'https://my-linktree-email-api.rufussweeney.workers.dev/api/send-email';
+    console.log('Attempting to fetch from:', workerUrl); // Debug log
+    
     try {
-      const res = await fetch('https://my-linktree-email-api.rufussweeney.workers.dev/', {
+      const res = await fetch(workerUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -18,12 +22,16 @@ export default function EmailForm() {
         body: JSON.stringify({ email, spreadsheetId: "spreadsheet_1" }),
       });
       
+      console.log('Response status:', res.status); // Debug log
+      
       const data = await res.json();
+      console.log('Response data:', data); // Debug log
+      
       if (data.success) {
-        setEmail(""); // Clear the form
+        setEmail("");
         setResponse("Email sent successfully!");
       } else {
-        setResponse(data.message || "Failed to send email.");  // Use data.message instead of data.error
+        setResponse(data.message || "Failed to send email.");
       }
     } catch (error) {
       console.error("Fetch error:", error);
