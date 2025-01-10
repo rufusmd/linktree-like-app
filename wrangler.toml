@@ -2,3 +2,6 @@ name = "linktree-like-app"
 type = "javascript"
 account_id = "your-cloudflare-account-id"
 workers_dev = true
+
+# Set the build output directory to match your Cloudflare Pages settings
+pages_build_output_dir = ".vercel/output/static"
