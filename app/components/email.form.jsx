@@ -10,7 +10,7 @@ export default function EmailForm() {
     e.preventDefault();
     setResponse("Submitting...");
     try {
-      const res = await fetch('https://my-linktree-email-api.rufussweeney.workers.dev/api/send-email', {
+      const res = await fetch('https://my-linktree-email-api.rufussweeney.workers.dev/', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
