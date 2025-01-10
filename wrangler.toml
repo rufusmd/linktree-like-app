@@ -1,7 +1,9 @@
-name = "linktree-like-app"
+name = "my-linktree-email-api"
 type = "javascript"
-account_id = "your-cloudflare-account-id"
+account_id = "92c8d7a279e9a7c8cefead48760382a8"
 workers_dev = true
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
-# Set the build output directory to match your Cloudflare Pages settings
-pages_build_output_dir = ".vercel/output/static"
+[vars]
+SENDGRID_API_KEY = "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"

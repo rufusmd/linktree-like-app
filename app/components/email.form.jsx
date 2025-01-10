@@ -10,20 +10,23 @@ export default function EmailForm() {
     e.preventDefault();
     setResponse("Submitting...");
     try {
-      const res = await fetch("/api/send-email/route.js", {  // Updated this line
+      const res = await fetch('https://my-linktree-email-api.rufussweeney.workers.dev/api/send-email', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, spreadsheetId: "spreadsheet_1" }),
       });
+      
       const data = await res.json();
       if (data.success) {
+        setEmail(""); // Clear the form
         setResponse("Email sent successfully!");
       } else {
-        setResponse(data.error || "Failed to send email.");
+        setResponse(data.message || "Failed to send email.");  // Use data.message instead of data.error
       }
     } catch (error) {
+      console.error("Fetch error:", error);
       setResponse("An error occurred. Please try again.");
     }
   };
