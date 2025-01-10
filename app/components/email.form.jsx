@@ -11,9 +11,11 @@ export default function EmailForm() {
     setResponse("Submitting...");
     
     const workerUrl = 'https://my-linktree-email-api.rufussweeney.workers.dev/api/send-email';
-    console.log('Attempting to fetch from:', workerUrl); // Debug log
+    console.log('DEBUG: Starting form submission'); // New debug line
+    console.log('DEBUG: Using Worker URL:', workerUrl); // New debug line
     
     try {
+      console.log('DEBUG: About to fetch'); // New debug line
       const res = await fetch(workerUrl, {
         method: "POST",
         headers: {
@@ -22,22 +24,22 @@ export default function EmailForm() {
         body: JSON.stringify({ email, spreadsheetId: "spreadsheet_1" }),
       });
       
-      console.log('Response status:', res.status); // Debug log
+      console.log('DEBUG: Fetch complete, status:', res.status); // Enhanced debug line
       
       const data = await res.json();
-      console.log('Response data:', data); // Debug log
+      console.log('DEBUG: Response data:', data); // Enhanced debug line
       
       if (data.success) {
         setEmail("");
-        setResponse("Email sent successfully!");
+        setResponse("Email sent successfully! Check your inbox.");  // Enhanced message
       } else {
         setResponse(data.message || "Failed to send email.");
       }
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.error("DEBUG: Error details:", error); // Enhanced error logging
       setResponse("An error occurred. Please try again.");
     }
-  };
+};
 
   return (
     <form
