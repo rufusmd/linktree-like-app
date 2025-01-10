@@ -1,51 +1,48 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function EmailForm() {
   const [email, setEmail] = useState("");
   const [response, setResponse] = useState("");
+  
+  // Log the Worker URL when component mounts
+  useEffect(() => {
+    console.log('Component mounted, will use Worker URL:', 'https://my-linktree-email-api.rufussweeney.workers.dev/api/send-email');
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setResponse("Submitting...");
-    
     const workerUrl = 'https://my-linktree-email-api.rufussweeney.workers.dev/api/send-email';
-    console.log('DEBUG: Starting form submission'); // New debug line
-    console.log('DEBUG: Using Worker URL:', workerUrl); // New debug line
+    console.log('Starting submission to:', workerUrl);
     
     try {
-      console.log('DEBUG: About to fetch'); // New debug line
       const res = await fetch(workerUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, spreadsheetId: "spreadsheet_1" }),
+        body: JSON.stringify({ 
+          email, 
+          spreadsheetId: "spreadsheet_1" 
+        }),
       });
       
-      console.log('DEBUG: Fetch complete, status:', res.status); // Enhanced debug line
-      
       const data = await res.json();
-      console.log('DEBUG: Response data:', data); // Enhanced debug line
-      
       if (data.success) {
         setEmail("");
-        setResponse("Email sent successfully! Check your inbox.");  // Enhanced message
+        setResponse("Email sent successfully!");
       } else {
         setResponse(data.message || "Failed to send email.");
       }
     } catch (error) {
-      console.error("DEBUG: Error details:", error); // Enhanced error logging
+      console.error("Submission error:", error);
       setResponse("An error occurred. Please try again.");
     }
-};
+  };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4 p-6 bg-white rounded shadow-md w-full max-w-md mx-auto mt-8"
-    >
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6 bg-white rounded shadow-md w-full max-w-md mx-auto mt-8">
       <label htmlFor="email" className="text-lg font-semibold">
         Enter your email:
       </label>
