@@ -1,32 +1,37 @@
 import sgMail from "@sendgrid/mail";
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+export const config = {
+  runtime: 'edge',
+};
 
-export async function POST(req) {
+export async function POST(request) {  // Changed from req to request
   try {
-    const { email, spreadsheetId } = await req.json();
-
-    if (!email || !spreadsheetId) {
-      return new Response(
-        JSON.stringify({ error: "Email and spreadsheet ID are required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+    if (!process.env.SENDGRID_API_KEY) {
+      throw new Error('SendGrid API key not found');
     }
 
-    const spreadsheetLinks = {
-      spreadsheet_1: "https://example.com/spreadsheet1",
-      spreadsheet_2: "https://example.com/spreadsheet2",
-      spreadsheet_3: "https://example.com/spreadsheet3",
-    };
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    
+    const { email, spreadsheetId } = await request.json();
+    
+    // Rest of your code stays the same...
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return new Response(
+      JSON.stringify({ 
+        error: "Failed to send email", 
+        details: error.message 
+      }),
+      { 
+        status: 500, 
+        headers: { 
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        } 
+      }
+    );
+  }
 
-    const selectedLink = spreadsheetLinks[spreadsheetId];
-
-    if (!selectedLink) {
-      return new Response(
-        JSON.stringify({ error: "Invalid spreadsheet ID" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
 
     const message = {
       to: email,
