@@ -1,12 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'standalone',
-    images: {
-      unoptimized: true,
-    }
-  };
-  
-  module.exports = nextConfig;
-  
-  
+    experimental: {
+        outputFileTracingRoot: __dirname, // Ensures dependencies are bundled
+    },
+    trailingSlash: true,               // Ensures proper static paths
+    distDir: ".vercel/output",         // Build output for Cloudflare Pages
+    output: "standalone",              // Makes the build self-contained
+};
+
+module.exports = nextConfig;
   
