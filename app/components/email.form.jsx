@@ -10,7 +10,7 @@ export default function EmailForm() {
     e.preventDefault();
     setResponse("Submitting...");
     try {
-      const res = await fetch("/submit-email", {
+      const res = await fetch("/api/send-email", {  // Updated this line
         method: "POST",
         headers: {
           "Content-Type": "application/json",
