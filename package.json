@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "deploy": "wrangler publish"
+    "start": "next start"
   },
   "dependencies": {
     "next": "^13.4.12",
