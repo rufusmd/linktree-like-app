@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import EmailForm from '../components/email.form';
+import SocialLinks from '../components/social.links';
 
 export default function LinktreePage() {
   const [selectedTool, setSelectedTool] = useState(null);
@@ -37,6 +38,7 @@ export default function LinktreePage() {
             {tool.name}
           </button>
         ))}
+        <SocialLinks />
       </div>
 
       {/* Modal */}
