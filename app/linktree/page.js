@@ -22,7 +22,7 @@ export default function LinktreePage() {
   return (
     <div className="max-w-xl mx-auto">
       <h1 className="text-5xl font-bold text-center mb-16">
-        Dr. Rufus' Spreadsheets
+        Dr. Rufus' Spreadsheets - 2024
       </h1>
 
       <div className="space-y-6">
