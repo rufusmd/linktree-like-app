@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@cloudflare/next-on-pages": "^1.13.7",
+    "@sendgrid/mail": "^8.1.4",
     "next": "^13.4.12",
     "next-auth": "^4.24.11",
     "react": "^18.2.0",
