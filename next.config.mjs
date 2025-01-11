@@ -1,18 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: true,
-  },
-  trailingSlash: true,
+  distDir: "out", // Optional: Specifies the output directory for the build
   images: {
-    unoptimized: true,
+    unoptimized: true, // Disables Next.js image optimization
   },
+  trailingSlash: true, // Ensures trailing slashes for routes
   env: {
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL, // Environment variable for dynamic URL
+  },
+  experimental: {
+    serverActions: true, // Optional: if using server actions
   },
 };
 
 export default nextConfig;
+
 
  
   
