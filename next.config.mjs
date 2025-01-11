@@ -1,15 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "export", // Enables static HTML export
-  distDir: "out", // Specifies the output directory
+  // Remove output: 'export' as it doesn't support API routes
+  trailingSlash: true,
   images: {
-    unoptimized: true, // Disables Next.js image optimization
+    unoptimized: true,
   },
-  trailingSlash: true, // Ensures trailing slashes for routes
-  env: {
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL, // Set dynamically
-  },
-};
+}
 
 export default nextConfig;
 
