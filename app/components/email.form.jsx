@@ -3,7 +3,11 @@
 import React, { useState } from "react";
 
 export default function EmailForm({ toolId, onSuccess }) {
-  const [email, setEmail] = useState("");
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: ""
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
 
@@ -18,21 +22,20 @@ export default function EmailForm({ toolId, onSuccess }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ 
-          email,
+          ...formData,
           toolId
         }),
       });
       
       const data = await res.json();
       if (data.success) {
-        setEmail("");
+        setFormData({ firstName: "", lastName: "", email: "" });
         setStatus({
           type: "success",
           message: "Email sent successfully! Check your inbox."
         });
-        // Wait 2 seconds to show success message before closing
         setTimeout(() => {
-          onSuccess();
+          onSuccess?.();
         }, 2000);
       } else {
         setStatus({
@@ -52,17 +55,50 @@ export default function EmailForm({ toolId, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+            First Name
+          </label>
+          <input
+            type="text"
+            id="firstName"
+            value={formData.firstName}
+            onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 
+                     focus:ring-[#F08162] focus:border-transparent outline-none"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+            Last Name
+          </label>
+          <input
+            type="text"
+            id="lastName"
+            value={formData.lastName}
+            onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 
+                     focus:ring-[#F08162] focus:border-transparent outline-none"
+            required
+          />
+        </div>
+      </div>
+      
       <div>
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          Email Address
+        </label>
         <input
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email"
+          id="email"
+          value={formData.email}
+          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 
                    focus:ring-[#F08162] focus:border-transparent outline-none"
           required
-          disabled={isSubmitting}
         />
       </div>
       

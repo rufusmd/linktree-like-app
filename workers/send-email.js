@@ -1,122 +1,175 @@
 export default {
     async fetch(request, env, ctx) {
+      // CORS Headers setup
+      const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept',
+        'Access-Control-Max-Age': '86400',
+      };
+
+      // Handle CORS preflight
       if (request.method === 'OPTIONS') {
         return new Response(null, {
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-          }
+          headers: corsHeaders
         });
       }
 
-      if (request.method !== 'POST') {
-        return new Response('Method Not Allowed', { status: 405 });
-      }
-  
-      try {
-        const requestBody = await request.json();
-        const { email, toolId } = requestBody;  // Changed from spreadsheetId to toolId
+      const url = new URL(request.url);
 
-        if (!email || !toolId) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            message: 'Missing email or tool ID' 
-          }), {
-            status: 400,
-            headers: { 
+      // Submissions endpoint (for admin dashboard)
+      if (url.pathname === '/api/submissions') {
+        try {
+          const submissions = await env.DB.prepare(
+            'SELECT * FROM submissions ORDER BY requestedAt DESC'
+          ).all();
+
+          return new Response(JSON.stringify(submissions.results || []), {
+            headers: {
+              ...corsHeaders,
               'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*'
-            },
+            }
+          });
+        } catch (error) {
+          console.error('Database error:', error);
+          return new Response(JSON.stringify({ error: 'Database error', details: error.message }), {
+            status: 500,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+            }
           });
         }
+      }
 
-        let spreadsheetLink;
-        let spreadsheetName;
+      // Email submission endpoint
+      if (request.method === 'POST') {
+        try {
+          const requestBody = await request.json();
+          const { email, firstName, lastName, toolId } = requestBody;
 
-        switch (toolId) {
-          case 'budgeting':
-            spreadsheetLink = 'https://docs.google.com/spreadsheets/d/1WZq28n-Wi8NLQnR0csuzrxi_d4OmUujjmLqD6iQwf40/edit?usp=sharing';
-            spreadsheetName = 'Budgeting Spreadsheet';
-            break;
-          case 'retirement':
-            spreadsheetLink = 'https://docs.google.com/spreadsheets/d/1W0Vqmg-Y-xQaGXvDxL_ehWY88czISbVftfiTI5HsKMY/edit?usp=sharing';
-            spreadsheetName = 'Retirement Savings Simulator';
-            break;
-          case 'rentVsBuy':
-            spreadsheetLink = 'https://docs.google.com/spreadsheets/d/1fzNGrUfWrFvhMhWr2Th4eJFaDuEvhl7Nc2NVdnNPQIk/edit?usp=sharing';
-            spreadsheetName = 'Rent vs. Buy Calculator';
-            break;
-          default:
+          if (!email || !toolId || !firstName || !lastName) {
             return new Response(JSON.stringify({ 
               success: false, 
-              message: 'Invalid tool selected' 
+              message: 'Missing required fields' 
             }), {
               status: 400,
-              headers: { 
+              headers: {
+                ...corsHeaders,
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-              },
+              }
             });
-        }
-  
-        const sgMail = require('@sendgrid/mail');
-        sgMail.setApiKey(env.SENDGRID_API_KEY);
-  
-        const msg = {
-          to: email,
-          from: 'rufus@drrufus.com',
-          subject: `Your ${spreadsheetName} from Dr. Rufus`,
-          text: `Thank you for your request! Here is your spreadsheet link: ${spreadsheetLink}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px;">
-              <h1 style="color: #4a154b;">Thank you for your request</h1>
-              <p>Here is your requested spreadsheet: 
-                <a href="${spreadsheetLink}" style="color: #F08162; text-decoration: underline;">
-                  Click here to access your ${spreadsheetName}
-                </a>
-              </p>
-              <p style="margin-top: 20px;">
-                Direct link (if the button doesn't work): <br>
-                ${spreadsheetLink}
-              </p>
-            </div>
-          `,
-        };
-  
-        try {
-          await sgMail.send(msg);
-          return new Response(JSON.stringify({ success: true, message: 'Email sent successfully' }), {
-            headers: { 
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*'
-            },
-          });
-        } catch (sendGridError) {
-          console.error("SendGrid Send Error:", sendGridError);
+          }
+
+          // Determine which spreadsheet to send
+          let spreadsheetLink;
+          let spreadsheetName;
+          switch (toolId) {
+            case 'budgeting':
+              spreadsheetLink = 'https://docs.google.com/spreadsheets/d/1WZq28n-Wi8NLQnR0csuzrxi_d4OmUujjmLqD6iQwf40/edit?usp=sharing';
+              spreadsheetName = 'Budgeting Spreadsheet';
+              break;
+            case 'retirement':
+              spreadsheetLink = 'https://docs.google.com/spreadsheets/d/1W0Vqmg-Y-xQaGXvDxL_ehWY88czISbVftfiTI5HsKMY/edit?usp=sharing';
+              spreadsheetName = 'Retirement Savings Simulator';
+              break;
+            case 'rentVsBuy':
+              spreadsheetLink = 'https://docs.google.com/spreadsheets/d/1fzNGrUfWrFvhMhWr2Th4eJFaDuEvhl7Nc2NVdnNPQIk/edit?usp=sharing';
+              spreadsheetName = 'Rent vs. Buy Calculator';
+              break;
+            default:
+              return new Response(JSON.stringify({ 
+                success: false, 
+                message: 'Invalid spreadsheet type' 
+              }), {
+                status: 400,
+                headers: {
+                  ...corsHeaders,
+                  'Content-Type': 'application/json',
+                }
+              });
+          }
+
+          // Store submission in D1
+          try {
+            await env.DB.prepare(
+              'INSERT INTO submissions (firstName, lastName, email, spreadsheetId) VALUES (?, ?, ?, ?)'
+            )
+            .bind(firstName, lastName, email, toolId)
+            .run();
+          } catch (dbError) {
+            console.error("Database Error:", dbError);
+            // Continue with email sending even if DB insert fails
+          }
+
+          // Send email via SendGrid
+          const sgMail = require('@sendgrid/mail');
+          sgMail.setApiKey(env.SENDGRID_API_KEY);
+
+          const msg = {
+            to: email,
+            from: 'rufus@drrufus.com', // Make sure this is your verified sender
+            subject: `Your ${spreadsheetName} from Dr. Rufus`,
+            text: `Thank you for your request! Here is your spreadsheet: ${spreadsheetLink}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h1>Your ${spreadsheetName}</h1>
+                <p>Thank you for your request! Here's your spreadsheet:</p>
+                <p><a href="${spreadsheetLink}" style="color: #F08162;">Click here to access your spreadsheet</a></p>
+                <p>Direct link: ${spreadsheetLink}</p>
+              </div>
+            `,
+          };
+
+          try {
+            console.log('Attempting to send email with:', {
+              to: email,
+              from: msg.from,
+              subject: msg.subject
+            });
+            
+            await sgMail.send(msg);
+            console.log('Email sent successfully');
+
+            return new Response(JSON.stringify({ success: true, message: 'Email sent successfully' }), {
+              headers: {
+                ...corsHeaders,
+                'Content-Type': 'application/json',
+              }
+            });
+          } catch (sendGridError) {
+            console.error("SendGrid Error:", {
+              message: sendGridError.message,
+              response: sendGridError.response?.body,
+              code: sendGridError.code
+            });
+            
+            return new Response(JSON.stringify({ 
+              success: false, 
+              message: `SendGrid error: ${sendGridError.message}` 
+            }), {
+              status: 500,
+              headers: {
+                ...corsHeaders,
+                'Content-Type': 'application/json',
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Error:", error);
           return new Response(JSON.stringify({ 
             success: false, 
-            message: `SendGrid error: ${sendGridError.message}` 
+            message: 'Server error' 
           }), {
             status: 500,
-            headers: { 
+            headers: {
+              ...corsHeaders,
               'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*'
-            },
+            }
           });
         }
-      } catch (parseError) {
-        console.error("Request Body Parse Error:", parseError);
-        return new Response(JSON.stringify({ 
-          success: false, 
-          message: 'Invalid request body' 
-        }), {
-          status: 400,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          },
-        });
       }
+
+      return new Response('Not Found', { status: 404 });
     },
 };
