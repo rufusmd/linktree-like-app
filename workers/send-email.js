@@ -102,15 +102,15 @@ export default {
             // Continue with email sending even if DB insert fails
           }
 
-          // Send email via SendGrid
+          // Send emails via SendGrid
           const sgMail = require('@sendgrid/mail');
           sgMail.setApiKey(env.SENDGRID_API_KEY);
 
-          const msg = {
+          // Email to user
+          const userMsg = {
             to: email,
-            from: 'rufus@drrufus.com', // Make sure this is your verified sender
+            from: 'rufus@drrufus.com',
             subject: `Your ${spreadsheetName} from Dr. Rufus`,
-            text: `Thank you for your request! Here is your spreadsheet: ${spreadsheetLink}`,
             html: `
               <div style="font-family: Arial, sans-serif; padding: 20px;">
                 <h1>Your ${spreadsheetName}</h1>
@@ -121,15 +121,28 @@ export default {
             `,
           };
 
+          // Notification email to you
+          const notificationMsg = {
+            to: 'rufus@drrufus.com',
+            from: 'rufus@drrufus.com',
+            subject: 'You got a new submission on Dr. Rufus!',
+            html: `
+              <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h1>New Spreadsheet Request</h1>
+                <p><strong>Name:</strong> ${firstName} ${lastName}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Requested:</strong> ${spreadsheetName}</p>
+                <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+              </div>
+            `,
+          };
+
           try {
-            console.log('Attempting to send email with:', {
-              to: email,
-              from: msg.from,
-              subject: msg.subject
-            });
-            
-            await sgMail.send(msg);
-            console.log('Email sent successfully');
+            // Send both emails
+            await Promise.all([
+              sgMail.send(userMsg),
+              sgMail.send(notificationMsg)
+            ]);
 
             return new Response(JSON.stringify({ success: true, message: 'Email sent successfully' }), {
               headers: {
