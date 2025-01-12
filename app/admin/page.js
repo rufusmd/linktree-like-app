@@ -10,6 +10,11 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'requestedAt', direction: 'desc' });
   const [filterType, setFilterType] = useState('all');
+  const [dateRange, setDateRange] = useState({
+    start: '',
+    end: ''
+  });
+  const [showExportOptions, setShowExportOptions] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -31,6 +36,51 @@ export default function AdminPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const downloadCSV = (submissions) => {
+    const dateFilter = (submission) => {
+      if (!dateRange.start && !dateRange.end) return true;
+      const submissionDate = new Date(submission.requestedAt);
+      const startDate = dateRange.start ? new Date(dateRange.start) : null;
+      const endDate = dateRange.end ? new Date(dateRange.end) : null;
+      
+      if (startDate && endDate) {
+        return submissionDate >= startDate && submissionDate <= endDate;
+      }
+      if (startDate) return submissionDate >= startDate;
+      if (endDate) return submissionDate <= endDate;
+      return true;
+    };
+
+    const filteredSubmissions = submissions.filter(dateFilter);
+    
+    // Convert submissions to CSV format
+    const headers = ['Date', 'Name', 'Email', 'Spreadsheet'];
+    const csvData = filteredSubmissions.map(sub => [
+      new Date(sub.requestedAt).toLocaleDateString(),
+      `${sub.firstName} ${sub.lastName}`,
+      sub.email,
+      sub.spreadsheetId
+    ]);
+
+    // Create CSV string
+    const csvString = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    // Create and trigger download
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `spreadsheet-requests-${new Date().toLocaleDateString()}.csv`;
+    link.click();
+
+    // Clean up
+    URL.revokeObjectURL(link.href);
+    setShowExportOptions(false);
+    setDateRange({ start: '', end: '' });
   };
 
   // Sorting function
@@ -114,7 +164,63 @@ export default function AdminPage() {
             <option value="retirement">Retirement</option>
             <option value="rentVsBuy">Rent vs. Buy</option>
           </select>
+          <button
+            onClick={() => setShowExportOptions(true)}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+          >
+            Export Data
+          </button>
         </div>
+
+        {/* Export Modal */}
+        {showExportOptions && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-semibold mb-4">Export Options</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={dateRange.start}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={dateRange.end}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowExportOptions(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => downloadCSV(filteredAndSortedSubmissions)}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                >
+                  Export
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
