@@ -30,7 +30,8 @@ export default function PlannerMatch() {
     'Pediatrics',
     'Psychiatry',
     'Surgery',
-    'Other'
+    'Other',
+    'Student'
   ];
 
   const states = [
@@ -53,7 +54,7 @@ export default function PlannerMatch() {
   const renderQuizStep1 = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-center">Step 1 of 3</h2>
-      <h3 className="text-xl text-gray-700">Tell us about your practice</h3>
+      <h3 className="text-xl text-gray-700">What is your stage of training?</h3>
 
       {/* Career Stage */}
       <div className="space-y-3">
@@ -184,7 +185,7 @@ const renderQuizStep2 = () => (
       <div className="space-y-3">
         <label className="block text-gray-700 font-medium">Meeting Format</label>
         <div className="space-y-2">
-          {['Video Call', 'Phone Call', 'No Preference'].map((format) => (
+          {['Video Call', 'Phone Call', 'In Person', 'No Preference'].map((format) => (
             <label key={format} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
               <input
                 type="radio"
@@ -335,7 +336,6 @@ const renderQuizStep2 = () => (
       <div className="space-y-4 text-gray-600">
         <p>Your response has been received.</p>
         <p>Dr. Rufus will personally review your profile and match you with the best financial planner for your needs.</p>
-        <p className="font-medium">Expected response: 1-2 business days</p>
       </div>
   
       <div className="mt-12 space-y-4">
